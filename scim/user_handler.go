@@ -54,6 +54,10 @@ func (h UserResourceHandler) Delete(r *http.Request, id string) error {
 }
 
 func (h UserResourceHandler) GetAll(r *http.Request, params scim.ListRequestParams) (scim.Page, error) {
+	if page, handled, err := handleSnapshotList(r, params, userSnapshotKind); handled {
+		return page, err
+	}
+
 	organization, err := getOrganization(r)
 	if err != nil {
 		return scim.Page{}, err

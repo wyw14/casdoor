@@ -238,7 +238,9 @@ func createDatabaseForPostgres(driverName string, dataSourceName string, dbName 
 }
 
 func (a *Ormer) CreateDatabase() error {
-	if a.driverName == "postgres" {
+	// SQLite has no CREATE DATABASE concept: the database is the DSN file, so there
+	// is nothing to create before Sync2 creates the tables.
+	if a.driverName == "postgres" || a.driverName == "sqlite" {
 		return nil
 	}
 

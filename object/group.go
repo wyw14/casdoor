@@ -427,6 +427,11 @@ func GetGroupUsers(groupId string) ([]*User, error) {
 	if err != nil {
 		return nil, err
 	}
+	// The group enforcer is initialized by the running server; a process that only
+	// opens the store (e.g. a SCIM snapshot test) sees groups without members.
+	if userEnforcer == nil {
+		return users, nil
+	}
 	names, err := userEnforcer.GetUserNamesByGroupName(groupId)
 	if err != nil {
 		return nil, err
