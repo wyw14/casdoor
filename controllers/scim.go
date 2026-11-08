@@ -28,5 +28,5 @@ func (c *RootController) HandleScim() {
 
 	path := c.Ctx.Request.URL.Path
 	c.Ctx.Request.URL.Path = strings.TrimPrefix(path, "/scim")
-	scim.Server.ServeHTTP(c.Ctx.ResponseWriter, scim.WithOrganization(c.Ctx.Request, organization))
+	scim.Handler.ServeHTTP(c.Ctx.ResponseWriter, scim.WithOrganization(c.Ctx.Request, organization))
 }
