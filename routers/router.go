@@ -252,6 +252,12 @@ func InitAPI() {
 	web.Router("/api/get-all-actions", &controllers.ApiController{}, "GET:GetAllActions")
 	web.Router("/api/get-all-roles", &controllers.ApiController{}, "GET:GetAllRoles")
 
+	web.Router("/api/plan-policy-bundle", &controllers.ApiController{}, "POST:PlanPolicyBundle")
+	web.Router("/api/publish-policy-bundle", &controllers.ApiController{}, "POST:PublishPolicyBundle")
+	web.Router("/api/get-policy-bundle-generations", &controllers.ApiController{}, "GET:GetPolicyBundleGenerations")
+	web.Router("/api/get-policy-bundle-publish-status", &controllers.ApiController{}, "GET:GetPolicyBundlePublishStatus")
+	web.Router("/api/bundle-enforce", &controllers.ApiController{}, "POST:BundleEnforce")
+
 	web.Router("/api/get-sessions", &controllers.ApiController{}, "GET:GetSessions")
 	web.Router("/api/get-session", &controllers.ApiController{}, "GET:GetSingleSession")
 	web.Router("/api/update-session", &controllers.ApiController{}, "POST:UpdateSession")

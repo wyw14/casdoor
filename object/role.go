@@ -149,6 +149,10 @@ func UpdateRole(id string, role *Role, isGlobalAdmin bool, lang string) (bool, e
 		}
 	}
 
+	if affected != 0 {
+		_ = NotifyBundleConfigChanged(owner)
+	}
+
 	return affected != 0, nil
 }
 
@@ -158,6 +162,9 @@ func AddRole(role *Role) (bool, error) {
 		return false, err
 	}
 
+	if affected != 0 {
+		_ = NotifyBundleConfigChanged(role.Owner)
+	}
 	return affected != 0, nil
 }
 
@@ -205,6 +212,9 @@ func deleteRole(role *Role) (bool, error) {
 		return false, err
 	}
 
+	if affected != 0 {
+		_ = NotifyBundleConfigChanged(role.Owner)
+	}
 	return affected != 0, nil
 }
 

@@ -217,6 +217,10 @@ func UpdateGroup(id string, group *Group, isGlobalAdmin bool, lang string) (bool
 		return false, err
 	}
 
+	if affected != 0 {
+		_ = NotifyBundleConfigChanged(owner)
+	}
+
 	return affected != 0, nil
 }
 
@@ -229,6 +233,10 @@ func AddGroup(group *Group) (bool, error) {
 	affected, err := ormer.Engine.Insert(group)
 	if err != nil {
 		return false, err
+	}
+
+	if affected != 0 {
+		_ = NotifyBundleConfigChanged(group.Owner)
 	}
 
 	return affected != 0, nil
@@ -286,6 +294,9 @@ func deleteGroup(group *Group) (bool, error) {
 		return false, err
 	}
 
+	if affected != 0 {
+		_ = NotifyBundleConfigChanged(group.Owner)
+	}
 	return affected != 0, nil
 }
 

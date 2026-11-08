@@ -196,6 +196,8 @@ func UpdatePermission(id string, permission *Permission) (bool, error) {
 		if err != nil {
 			return false, err
 		}
+
+		_ = NotifyBundleConfigChanged(owner)
 	}
 
 	return affected != 0, nil
@@ -283,6 +285,8 @@ func AddPermission(permission *Permission) (bool, error) {
 		if err != nil {
 			return false, err
 		}
+
+		_ = NotifyBundleConfigChanged(permission.Owner)
 	}
 
 	return affected != 0, nil
@@ -349,6 +353,9 @@ func deletePermission(permission *Permission) (bool, error) {
 		return false, err
 	}
 
+	if affected != 0 {
+		_ = NotifyBundleConfigChanged(permission.Owner)
+	}
 	return affected != 0, nil
 }
 
