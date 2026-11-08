@@ -22,33 +22,21 @@ import (
 	"io"
 	"mime"
 	"mime/multipart"
-	"regexp"
 	"strings"
 
 	"github.com/beego/beego/v2/server/web/context"
+	"github.com/casdoor/casdoor/auditsnapshot"
 	"github.com/casdoor/casdoor/conf"
 	"github.com/casdoor/casdoor/util"
 )
 
-var (
-	logPostOnly          bool
-	secretJsonRegex      *regexp.Regexp
-	secretFormRegex      *regexp.Regexp
-	secretMultipartRegex *regexp.Regexp
-)
+var logPostOnly bool
 
-var secretRecordKeys = []string{
-	"password", "oldPassword", "newPassword", "masterPassword", "defaultPassword", "passwordSalt", "passwordObfuscatorKey",
-	"clientSecret", "client_secret", "clientSecret2", "accessSecret", "secret", "secretKey", "privateKey", "sslKey", "kerberosKeytab",
-	"token", "accessToken", "access_token", "refreshToken", "refresh_token", "idToken", "id_token", "registrationAccessToken",
-	"originalToken", "originalRefreshToken", "totpSecret", "masterVerificationCode",
-	"code_verifier", "passcode", "recoveryCode", "recoveryCodes",
-}
-
-// secretRecordKeyPatterns match the per-provider OAuth tokens kept in a user's properties
-var secretRecordKeyPatterns = []string{`oauth_[^"&=]*_(?:accessToken|refreshToken)`}
-
-var secretRecordQueries = append([]string{"id_token_hint"}, secretRecordKeys...)
+// secretRecordQueries lists the query parameters stripped before a request URI
+// is persisted. The secret key list itself is pinned by the versioned audit
+// snapshot mask policy so that write-time masking and export-time masking can
+// never drift apart.
+var secretRecordQueries = append([]string{"id_token_hint"}, auditsnapshot.SecretRecordKeys...)
 
 // alwaysLoggedActions lists the actions that are always recorded, even for GET
 // requests when "logPostOnly" is enabled. These endpoints accept GET by design
@@ -62,11 +50,6 @@ var alwaysLoggedActions = map[string]bool{
 
 func init() {
 	logPostOnly = conf.GetConfigBool("logPostOnly")
-	keys := strings.Join(append(append([]string{}, secretRecordKeys...), secretRecordKeyPatterns...), "|")
-	jsonString := `"(?:[^"\\]|\\.)*"`
-	secretJsonRegex = regexp.MustCompile(`(?i)"(` + keys + `)"\s*:\s*(?:` + jsonString + `|\[(?:` + jsonString + `|[^\]"])*\])`)
-	secretFormRegex = regexp.MustCompile(`(?i)(^|&)(` + keys + `)=[^&]*`)
-	secretMultipartRegex = regexp.MustCompile(`(?i)(name="(?:` + keys + `)"\r?\n\r?\n)[^\r\n]*`)
 }
 
 type Record struct {
@@ -100,10 +83,10 @@ type Response struct {
 	Data interface{} `json:"data"`
 }
 
+// maskSecrets applies the revision-pinned mask policy shared with audit
+// snapshot exports (see auditsnapshot.MaskPolicyRevision).
 func maskSecrets(recordString string) string {
-	recordString = secretJsonRegex.ReplaceAllString(recordString, `"$1":"***"`)
-	recordString = secretFormRegex.ReplaceAllString(recordString, "${1}${2}=***")
-	return secretMultipartRegex.ReplaceAllString(recordString, "${1}***")
+	return auditsnapshot.MaskSecrets(recordString)
 }
 
 // summarizeMultipartBody keeps the form fields of a multipart request and replaces the content
